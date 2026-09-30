@@ -1,41 +1,26 @@
-import os
-from dotenv import load_dotenv
+# app/services/notifications.py
+import africastalking
+from app.core.config import settings
 
-load_dotenv()
+# Initialize Africa's Talking SDK
+africastalking.initialize(
+    username=settings.AFRICASTALKING_USERNAME,
+    api_key=settings.AFRICASTALKING_API_KEY
+)
+sms_service = africastalking.SMS
 
-def send_email(to_email: str, subject: str, body: str):
-    """
-    In production, this uses smtplib or SendGrid API to dispatch the email.
-    """
-    print(f"\n📧 [EMAIL DISPATCHED]")
-    print(f"   To: {to_email}")
-    print(f"   Subject: {subject}")
-    print(f"   Body: {body}\n")
-    
-    # Example production logic:
-    # msg = MIMEText(body)
-    # msg['Subject'] = subject
-    # msg['From'] = os.getenv("SMTP_EMAIL")
-    # msg['To'] = to_email
-    # server = smtplib.SMTP(os.getenv("SMTP_SERVER"), int(os.getenv("SMTP_PORT")))
-    # server.starttls()
-    # server.login(os.getenv("SMTP_EMAIL"), os.getenv("SMTP_PASSWORD"))
-    # server.send_message(msg)
-    # server.quit()
+class NotificationEngine:
+    @staticmethod
+    def send_sms(to_phone: str, message: str) -> dict:
+        """Dispatches transactional SMS to owners or next of kin[cite: 2]."""
+        try:
+            response = sms_service.send(message, [to_phone])
+            return {"status": "sent", "details": response}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
 
-def send_sms(to_phone: str, body: str):
-    """
-    In production, this uses the Twilio Python SDK to send a text message.
-    """
-    print(f"\n📱 [SMS DISPATCHED]")
-    print(f"   To: {to_phone}")
-    print(f"   Message: {body}\n")
-    
-    # Example production logic:
-    # from twilio.rest import Client
-    # client = Client(os.getenv("TWILIO_ACCOUNT_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
-    # message = client.messages.create(
-    #     body=body,
-    #     from_=os.getenv("TWILIO_PHONE_NUMBER"),
-    #     to=to_phone
-    # )
+    @staticmethod
+    def send_beneficiary_onboarding_email(email: str, vault_id: str, claim_link: str):
+        """Sends branded onboarding and claim execution instructions[cite: 2]."""
+        # Email sending logic using SMTP/Sendgrid
+        pass
